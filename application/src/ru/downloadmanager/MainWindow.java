@@ -6,6 +6,7 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.File;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 
@@ -39,6 +40,18 @@ public class MainWindow {
     private final static Insets buttonMargin = new Insets(2, 4, 2, 4);
 
     private MainWindow() {
+        //    config
+        File downloadDir = new File(ApplicationConfig.getRequired("downloadDirectory"));
+        if (!downloadDir.exists()) {
+            throw new RuntimeException("Directory doesn't exist: " + downloadDir.getPath());
+        }
+        if (!downloadDir.isDirectory()) {
+            throw new RuntimeException("File is not a directory: " + downloadDir.getPath());
+        }
+        int defaultThreadsCount = ApplicationConfig.getRequiredInt("defaultThreadsCount");
+        String userAgent = ApplicationConfig.getRequired("User-Agent");
+        int redirectionLimit = ApplicationConfig.getRequiredInt("redirectionLimit");
+
         //    create main window
         frame = new JFrame();
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -80,8 +93,7 @@ public class MainWindow {
         threadsLabel = new JLabel("threads:");
         frame.getContentPane().add(threadsLabel);
 
-        int DEFAULT_THREADS_COUNT = 2;
-        threadsField = new JSpinner(new SpinnerNumberModel(DEFAULT_THREADS_COUNT, 1, 1000, 1));
+        threadsField = new JSpinner(new SpinnerNumberModel(defaultThreadsCount, 1, 1000, 1));
         frame.getContentPane().add(threadsField);
 
         scrolledPanel = new JPanel();
@@ -132,7 +144,9 @@ public class MainWindow {
         threadsField.addChangeListener((e) -> manager.setThreadsCount((Integer)threadsField.getValue()));
 
         //    start download manager
-        manager = new DownloadManager(DEFAULT_THREADS_COUNT, "download");
+        manager = new DownloadManager(defaultThreadsCount, downloadDir);
+        manager.setUserAgent(userAgent);
+        manager.setRedirectionLimit(redirectionLimit);
 
         Timer timer = new Timer(200, (e) -> updateStatus());
         timer.start();

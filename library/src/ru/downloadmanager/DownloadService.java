@@ -13,7 +13,7 @@ public class DownloadService {
     public static int UNKNOWN = -1;
 
     private String userAgent = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:43.0) Gecko/20100101 Firefox/43.0";
-    private int followRedirects = 5;
+    private int redirectionLimit = 5;
 
     public DownloadService() {
 
@@ -27,12 +27,12 @@ public class DownloadService {
         this.userAgent = userAgent;
     }
 
-    public int getFollowRedirects() {
-        return followRedirects;
+    public int getRedirectionLimit() {
+        return redirectionLimit;
     }
 
-    public void setFollowRedirects(int followRedirects) {
-        this.followRedirects = followRedirects;
+    public void setRedirectionLimit(int redirectionLimit) {
+        this.redirectionLimit = redirectionLimit;
     }
 
     public interface Handler {
@@ -44,7 +44,7 @@ public class DownloadService {
     }
 
     public void download(String url, File file, long rangeFrom, Handler handler) throws IOException, DownloadException, InterruptedException {
-        download(url, file, followRedirects, rangeFrom, handler);
+        download(url, file, redirectionLimit, rangeFrom, handler);
     }
 
     public void download(String url, File file, int followRedirects, long rangeFrom, Handler handler) throws IOException, DownloadException, InterruptedException {
@@ -120,7 +120,7 @@ public class DownloadService {
         return (HttpURLConnection) new URL(url).openConnection();
     }
 
-    public static File createFileForURL(String url, String downloadDir) throws IOException {
+    public static File createFileForURL(String url, File downloadDir) throws IOException {
         while (true) {
             File file = getFileForURL(url, downloadDir);
             if (file.createNewFile()) {
@@ -129,7 +129,7 @@ public class DownloadService {
         }
     }
 
-    public static File getFileForURL(String url, String downloadDir) {
+    public static File getFileForURL(String url, File downloadDir) {
         if (url.startsWith("http://")) {
             url = url.substring("http://".length());
         } else if (url.startsWith("https://")) {
@@ -144,10 +144,7 @@ public class DownloadService {
             url = url.substring(i+1);
         }
         String fileName = url.replaceAll("[^a-zA-Z0-9\\.]+$", "").replaceAll("[^a-zA-Z0-9\\.]", "_");
-        if (!downloadDir.endsWith(File.separator) && !downloadDir.endsWith("/")) {
-            downloadDir = downloadDir + File.separator;
-        }
-        File file = new File(incFileNameWhileExists(downloadDir + fileName));
+        File file = new File(incFileNameWhileExists(new File(downloadDir, fileName).getPath()));
         return file;
     }
 

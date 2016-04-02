@@ -21,7 +21,7 @@ import static org.junit.Assert.assertEquals;
 
 public class DownloadServiceTest {
 
-    private static final String DIR_PATH = "temp/";
+    private static final File DIR = new File("temp");
 
     private Random random = new Random();
 
@@ -38,9 +38,8 @@ public class DownloadServiceTest {
 
     @Before
     public void init() {
-        File dir = new File(DIR_PATH);
-        if (!dir.mkdirs()) {
-            for (File file : dir.listFiles()) {
+        if (!DIR.mkdirs()) {
+            for (File file : DIR.listFiles()) {
                 file.delete();
             }
         }
@@ -149,12 +148,11 @@ public class DownloadServiceTest {
 
     @AfterClass
     public static void finz() {
-        File dir = new File(DIR_PATH);
-        if (dir.exists()) {
-            for (File file : dir.listFiles()) {
+        if (DIR.exists()) {
+            for (File file : DIR.listFiles()) {
                 file.delete();
             }
-            dir.delete();
+            DIR.delete();
         }
     }
 
@@ -172,28 +170,28 @@ public class DownloadServiceTest {
 
     @Test
     public void getNewFile() {
-        File file = DownloadService.getFileForURL("www.domen.com/picture.jpg", DIR_PATH);
+        File file = DownloadService.getFileForURL("www.domen.com/picture.jpg", DIR);
         assertEquals("picture.jpg", file.getName());
     }
 
     @Test
     public void getFileIfExists() throws IOException {
-        new File(DIR_PATH + "/picture.jpg").createNewFile();
-        File file = DownloadService.getFileForURL("www.domen.com/picture.jpg", DIR_PATH);
+        new File(DIR, "picture.jpg").createNewFile();
+        File file = DownloadService.getFileForURL("www.domen.com/picture.jpg", DIR);
         assertEquals("picture (2).jpg", file.getName());
     }
 
     @Test
     public void getFileIfSecondExists() throws IOException {
-        new File(DIR_PATH + "/picture.jpg").createNewFile();
-        new File(DIR_PATH + "/picture (2).jpg").createNewFile();
-        File file = DownloadService.getFileForURL("www.domen.com/picture.jpg", DIR_PATH);
+        new File(DIR, "picture.jpg").createNewFile();
+        new File(DIR, "picture (2).jpg").createNewFile();
+        File file = DownloadService.getFileForURL("www.domen.com/picture.jpg", DIR);
         assertEquals("picture (3).jpg", file.getName());
     }
 
     @Test
     public void download() throws Exception {
-        File file = new File(DIR_PATH + "/temp");
+        File file = new File(DIR, "temp");
 
         service.download("http://any.url", file, downloadHandler);
 
@@ -208,7 +206,7 @@ public class DownloadServiceTest {
 
     @Test
     public void downloadBySmellParts() throws Exception {
-        File file = new File(DIR_PATH + "/temp");
+        File file = new File(DIR, "temp");
 
         maxReadBlock = 23;
         service.download("http://any.url", file, downloadHandler);
@@ -221,11 +219,11 @@ public class DownloadServiceTest {
 
     @Test
     public void redirect() throws Exception {
-        File file = new File(DIR_PATH + "/temp");
+        File file = new File(DIR, "temp");
 
         redirectMap.put("http://first", "http://second");
         redirectMap.put("http://second", "http://third");
-        service.setFollowRedirects(2);
+        service.setRedirectionLimit(2);
         service.download("http://first", file, downloadHandler);
 
         assertEquals(Arrays.asList("http://first", "http://second", "http://third"), accessedURLs);
@@ -237,18 +235,18 @@ public class DownloadServiceTest {
 
     @Test(expected = DownloadException.class)
     public void toManyRedirects() throws Exception {
-        File file = new File(DIR_PATH + "/temp");
+        File file = new File(DIR, "temp");
 
         redirectMap.put("http://first", "http://second");
         redirectMap.put("http://second", "http://third");
         redirectMap.put("http://third", "http://fourth");
-        service.setFollowRedirects(2);
+        service.setRedirectionLimit(2);
         service.download("http://first", file, downloadHandler);
     }
 
     @Test
     public void downloadRange() throws Exception {
-        File file = new File(DIR_PATH + "/temp");
+        File file = new File(DIR, "temp");
 
         int range = 997;
         service.download("http://any.url", file, range, downloadHandler);

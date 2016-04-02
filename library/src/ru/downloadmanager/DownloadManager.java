@@ -15,16 +15,16 @@ import java.util.concurrent.TimeUnit;
  */
 public class DownloadManager {
 
-    private DownloadService service;
+    protected DownloadService service;
 
     private ThreadPoolExecutor pool;
-    private String downloadDir;
+    private File downloadDir;
 
     private LinkedHashMap<Integer, Item> queue = new LinkedHashMap<>();
     private Object sync = queue;
     private int counter = 0;
 
-    public DownloadManager(int threadsCount, String downloadDir) {
+    public DownloadManager(int threadsCount, File downloadDir) {
         service = new DownloadService();
         pool = new ThreadPoolExecutor(threadsCount, threadsCount, 1, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
         this.downloadDir = downloadDir;
@@ -43,12 +43,12 @@ public class DownloadManager {
         service.setUserAgent(userAgent);
     }
 
-    public int getFollowRedirects() {
-        return service.getFollowRedirects();
+    public int getRedirectionLimit() {
+        return service.getRedirectionLimit();
     }
 
-    public void setFollowRedirects(int followRedirects) {
-        service.setFollowRedirects(followRedirects);
+    public void setRedirectionLimit(int redirectionLimit) {
+        service.setRedirectionLimit(redirectionLimit);
     }
 
 

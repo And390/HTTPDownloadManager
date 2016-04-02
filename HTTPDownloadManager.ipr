@@ -25,6 +25,7 @@
           <element id="artifact" artifact-name="library" />
           <element id="artifact" artifact-name="application" />
         </element>
+        <element id="file-copy" path="$PROJECT_DIR$/application/config.properties" />
       </root>
     </artifact>
   </component>
