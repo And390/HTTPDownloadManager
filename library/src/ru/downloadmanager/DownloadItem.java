@@ -11,18 +11,16 @@ public class DownloadItem {
     private final File file;
     private final long total;  //zero if unknown
     private final long received;
-    private final boolean done;
-    private final boolean stopped;
+    private final DownloadItemState state;
     private final Throwable error;
 
-    public DownloadItem(int id, String url, File file, long total, long received, boolean done, boolean stopped, Throwable error) {
+    public DownloadItem(int id, String url, File file, long total, long received, DownloadItemState state, Throwable error) {
         this.id = id;
         this.url = url;
         this.file = file;
         this.total = total;
         this.received = received;
-        this.done = done;
-        this.stopped = stopped;
+        this.state = state;
         this.error = error;
     }
 
@@ -51,10 +49,14 @@ public class DownloadItem {
     }
 
     public boolean isDone() {
-        return done;
+        return state == DownloadItemState.DONE;
     }
 
     public boolean isStopped() {
-        return stopped;
+        return state == DownloadItemState.STOPPED;
+    }
+
+    public DownloadItemState getState() {
+        return state;
     }
 }

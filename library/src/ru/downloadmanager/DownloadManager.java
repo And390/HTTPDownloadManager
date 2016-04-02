@@ -173,10 +173,17 @@ public class DownloadManager {
         }
     }
 
+    public DownloadItem getState(int id) {
+        synchronized (sync) {
+            Item item = queue.get(id);
+            return item == null ? null : convert(item);
+        }
+    }
+
     private DownloadItem convert(Item item) {
         return new DownloadItem(item.id, item.url, item.file,
                 item.total != DownloadService.UNKNOWN && item.total >= item.received ? item.total : 0, item.received,
-                item.state == DownloadItemState.DONE, item.state == DownloadItemState.STOPPED, item.error);
+                item.state, item.error);
     }
 
 
