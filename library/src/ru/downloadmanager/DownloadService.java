@@ -12,20 +12,45 @@ public class DownloadService {
 
     public static int UNKNOWN = -1;
 
-    private static final String userAgent = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:43.0) Gecko/20100101 Firefox/43.0";
+    private String userAgent = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:43.0) Gecko/20100101 Firefox/43.0";
+    private int followRedirects = 5;
+
+    public DownloadService() {
+
+    }
+
+    public String getUserAgent() {
+        return userAgent;
+    }
+
+    public void setUserAgent(String userAgent) {
+        this.userAgent = userAgent;
+    }
+
+    public int getFollowRedirects() {
+        return followRedirects;
+    }
+
+    public void setFollowRedirects(int followRedirects) {
+        this.followRedirects = followRedirects;
+    }
 
     public interface Handler {
         void onProgress(long received, long total) throws InterruptedException;
     }
 
-    public static void download(String url, File file, int followRedirects, Handler handler) throws IOException, DownloadException, InterruptedException {
-        download(url, file, followRedirects, file.exists() ? (int)file.length() : 0, handler);
+    public void download(String url, File file, Handler handler) throws IOException, DownloadException, InterruptedException {
+        download(url, file, file.exists() ? (int)file.length() : 0, handler);
     }
 
-    public static void download(String url, File file, int followRedirects, long rangeFrom, Handler handler) throws IOException, DownloadException, InterruptedException {
+    public void download(String url, File file, long rangeFrom, Handler handler) throws IOException, DownloadException, InterruptedException {
+        download(url, file, followRedirects, rangeFrom, handler);
+    }
+
+    public void download(String url, File file, int followRedirects, long rangeFrom, Handler handler) throws IOException, DownloadException, InterruptedException {
 
         //    prepare request
-        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+        HttpURLConnection connection = openConnection(url);
         connection.setRequestMethod("GET");
         connection.setRequestProperty("User-Agent", userAgent);
         if (rangeFrom > 0) {
@@ -47,7 +72,7 @@ public class DownloadService {
         //    process redirects or error status code
         } else if (status != HttpURLConnection.HTTP_OK) {
             if (followRedirects >= 0 && (status == HttpURLConnection.HTTP_MOVED_TEMP || status == HttpURLConnection.HTTP_MOVED_PERM
-                    || status == HttpURLConnection.HTTP_SEE_OTHER)) {
+                    || status == HttpURLConnection.HTTP_SEE_OTHER || status == 307)) {
                 if (followRedirects == 0) {
                     throw new DownloadException("No more redirects are allowed");
                 }
@@ -91,6 +116,10 @@ public class DownloadService {
         }
     }
 
+    protected HttpURLConnection openConnection(String url) throws IOException {
+        return (HttpURLConnection) new URL(url).openConnection();
+    }
+
     public static File createFileForURL(String url, String downloadDir) throws IOException {
         while (true) {
             File file = getFileForURL(url, downloadDir);
@@ -110,7 +139,14 @@ public class DownloadService {
         if (i != -1) {
             url = url.substring(0, i);
         }
+        i = url.lastIndexOf('/');
+        if (i != -1 && i != url.length() - 1) {
+            url = url.substring(i+1);
+        }
         String fileName = url.replaceAll("[^a-zA-Z0-9\\.]+$", "").replaceAll("[^a-zA-Z0-9\\.]", "_");
+        if (!downloadDir.endsWith(File.separator) && !downloadDir.endsWith("/")) {
+            downloadDir = downloadDir + File.separator;
+        }
         File file = new File(incFileNameWhileExists(downloadDir + fileName));
         return file;
     }

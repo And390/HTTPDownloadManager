@@ -15,6 +15,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class DownloadManager {
 
+    private DownloadService service;
+
     private ThreadPoolExecutor pool;
     private String downloadDir;
 
@@ -23,10 +25,8 @@ public class DownloadManager {
     private int counter = 0;
 
     public DownloadManager(int threadsCount, String downloadDir) {
+        service = new DownloadService();
         pool = new ThreadPoolExecutor(threadsCount, threadsCount, 1, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
-        if (!downloadDir.endsWith(File.separator) && !downloadDir.endsWith("/")) {
-            downloadDir = downloadDir + File.separator;
-        }
         this.downloadDir = downloadDir;
     }
 
@@ -34,6 +34,23 @@ public class DownloadManager {
         pool.setCorePoolSize(count);
         pool.setMaximumPoolSize(count);
     }
+
+    public String getUserAgent() {
+        return service.getUserAgent();
+    }
+
+    public void setUserAgent(String userAgent) {
+        service.setUserAgent(userAgent);
+    }
+
+    public int getFollowRedirects() {
+        return service.getFollowRedirects();
+    }
+
+    public void setFollowRedirects(int followRedirects) {
+        service.setFollowRedirects(followRedirects);
+    }
+
 
     /**
      * Synchronously add task
@@ -196,7 +213,7 @@ public class DownloadManager {
                     item.state = DownloadItemState.STARTED;
                 }
 
-                DownloadService.download(item.url, item.file, 10, (received, total) -> {
+                service.download(item.url, item.file, 10, (received, total) -> {
                     synchronized (sync) {
                         if (Thread.interrupted()) {
                             throw new InterruptedException();
