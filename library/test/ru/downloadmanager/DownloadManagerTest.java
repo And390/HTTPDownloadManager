@@ -1,6 +1,7 @@
 package ru.downloadmanager;
 
 
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -41,6 +42,16 @@ public class DownloadManagerTest {
                 };
             }
         };
+    }
+
+    @AfterClass
+    public static void finz() {
+        if (DIR.exists()) {
+            for (File file : DIR.listFiles()) {
+                file.delete();
+            }
+            DIR.delete();
+        }
     }
 
     private static class ItemController implements CompleteListener {
