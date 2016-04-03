@@ -56,6 +56,10 @@ public class DownloadItem {
         return state == DownloadItemState.STOPPED;
     }
 
+    public boolean isActive() {
+        return state == DownloadItemState.NEW || state == DownloadItemState.STARTED;
+    }
+
     public DownloadItemState getState() {
         return state;
     }

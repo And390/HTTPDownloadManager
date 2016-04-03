@@ -95,20 +95,22 @@ public class DownloadService {
         InputStream in = connection.getInputStream();
         try (FileOutputStream out = new FileOutputStream(file, rangedResponse)) {
             final int BLOCK_SIZE = 8192;
-            byte[] buffer = new byte[BLOCK_SIZE + 4096];
+            byte[] buffer = new byte[BLOCK_SIZE];
             for (int offset = 0; ; ) {
                 int readed = in.read(buffer, offset, buffer.length - offset);
                 if (readed == -1) {
                     out.write(buffer, 0, offset);
+                    received += offset;
+                    handler.onProgress(received, total);
                     break;
                 }
                 offset += readed;
-                if (offset >= BLOCK_SIZE) {
+                if (offset == BLOCK_SIZE) {
                     out.write(buffer, 0, offset);
+                    received += offset;
                     offset = 0;
+                    handler.onProgress(received, total);
                 }
-                received += readed;
-                handler.onProgress(received, total);
             }
         } catch (IOException | RuntimeException e) {
             file.delete();

@@ -8,7 +8,7 @@ public class DownloadState {
 
     private long total;  //zero if unknown
     private long received;
-    private DownloadItem[] items;
+    private DownloadItem[] items;  // it keeps the order of items
 
     public DownloadState(long total, long received, DownloadItem[] items) {
         this.total = total;

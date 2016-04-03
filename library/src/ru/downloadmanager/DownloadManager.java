@@ -220,13 +220,13 @@ public class DownloadManager {
                     item.state = DownloadItemState.STARTED;
                 }
 
-                service.download(item.url, item.file, 10, (received, total) -> {
+                service.download(item.url, item.file, item.received, (received, total) -> {
                     synchronized (sync) {
+                        item.received = received;
+                        item.total = total;
                         if (Thread.interrupted()) {
                             throw new InterruptedException();
                         }
-                        item.received = received;
-                        item.total = total;
                     }
                 });
             } catch (InterruptedException e) {
